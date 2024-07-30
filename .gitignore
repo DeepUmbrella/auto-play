@@ -1,0 +1,12 @@
+# edit 
+.vscode 
+.idea 
+*.iml 
+*.log 
+*.pyc 
+*.pyo 
+__pycache__
+
+
+# python
+.venv
