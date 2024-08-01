@@ -6,7 +6,7 @@ This is a program that can automatically play games, including games on the web 
 
 ## 2. how to start
 
-make sure you have Python installed on your computer. and install poetry package manager tools
+make sure you have Python installed on your computer. and install conda package manager tools
 
 if not you must install them
 
@@ -15,13 +15,36 @@ install python ^3.11
 https://www.python.org/downloads
 
 ```bash
-pip install poetry
+
+# create conda environment
+conda create -n auto-play python=3.11
+# change to conda environment
+conda activate auto-play
+# deactivate conda environment
+conda deactivate
+# list all conda environment
+conda env list
+# remove conda environment
+conda remove -n auto-play --all
+
+
+```
+
+```bash
+
+
 
 # add dependencies
-poetry add <package-name>
+pip install <package-name>[=<version>]
 
-# add dev dependencies
-poetry add --dev <package-name>
+# remove dependencies
+pip uninstall <package-name>
+
+# generate requirements.txt
+pipreqs --force
+
+pip freeze > requirements.txt
+
 
 ```
 
@@ -29,7 +52,7 @@ poetry add --dev <package-name>
 
 ```bash
 
-poetry install
+pip install -r requirements.txt
 
 ```
 
