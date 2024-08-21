@@ -1,8 +1,15 @@
-
+from typing import Callable
 import numpy as np
 import mss
 import time
 import cv2
+
+from ultralytics import YOLO
+
+
+# Load a model
+# model = YOLO("netmodels/yolov8/yolov8n.pt")
+model = YOLO("netmodels/yolov8/yolov8n-pose.pt")
 
 
 class ScreenCapture:
@@ -37,7 +44,7 @@ class ScreenCapture:
         if height is not None:
             self.size["height"] = height
 
-    def capture_window(self, dev=False):
+    def capture_window(self, dev=False, output: Callable[[], None] = None):
 
         with mss.mss() as sct:
 
@@ -54,17 +61,22 @@ class ScreenCapture:
                 # 转换为BGR格式（OpenCV默认颜色格式）
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
-                if dev == True:
-                    cv2.imshow('Screen Capture', img)
+                results = model(img, verbose=False)
+                frame = results[0].plot()
 
+                # boxes = result.boxes  # Boxes object for bounding box outputs
+                # masks = result.masks  # Masks object for segmentation masks outputs
+                # keypoints = result.keypoints  # Keypoints object for pose outputs
+                # probs = result.probs  # Probs object for classification outputs
+                # obb = result.obb
+
+                if dev == True:
+                    cv2.imshow('Screen Capture', frame)
                     # 按下 'q' 键退出
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
 
-                    # 计算需要睡眠的时间以保持 60 FPS
-
-                    pass
-
+                output(frame.tobytes())
                 elapsed_time = time.time() - start_time
                 self.act_fps = 1 / elapsed_time
                 sleep_time = max(0, frame_duration - elapsed_time)
