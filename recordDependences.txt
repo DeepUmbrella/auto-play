@@ -1,3 +1,6 @@
 
+pip install pyautogui
+pip install label-studio
 
-conda install -c conda-forge python-mss
+docker pull heartexlabs/label-studio:latest
+docker run -it -p 8080:8080 -v $(pwd)/mydata:/label-studio/data heartexlabs/label-studio:latest --allow-cors
