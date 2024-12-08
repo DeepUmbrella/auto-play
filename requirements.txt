@@ -4,4 +4,6 @@ torchaudio
 ultralytics
 mss
 pyautogui
+pygetwindow
+
 
