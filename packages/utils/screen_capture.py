@@ -3,14 +3,16 @@ import numpy as np
 import mss
 import time
 import cv2
+import random
 from queue import Queue
-from threading import Event
+from threading import Event, Thread
 from .screen_match import ScreenMatch
 
 
 class ScreenCapture:
 
-    def __init__(self, screen_target: ScreenMatch, fps: int = 3, dev_model: bool = False):
+    def __init__(self, screen_target: ScreenMatch, fps: int = 5, dev_model: bool = False):
+        self._img = None
         self._DEV_MODEL = dev_model
         self.screen_target = screen_target
         self.fps = fps
@@ -22,8 +24,11 @@ class ScreenCapture:
     def act_fps(self):
         return self._act_fps
 
+    @property
+    def img(self):
+        return self._img
+
     def producer(self):
-        self.capturing = True
 
         with mss.mss() as sct:
 
@@ -39,15 +44,15 @@ class ScreenCapture:
                 img = np.array(screenshot)
 
                 # to RGB
-                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+                self._img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
                 if self._DEV_MODEL == True:
-                    cv2.imshow('Screen Capture', img)
+                    cv2.imshow('Screen Capture', self.img)
                     # 按下 'q' 键退出
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         self.capture_stop()
                 elapsed_time = time.time() - start_time
-                self._act_fps = 1 / elapsed_time
+
                 sleep_time = max(0, frame_duration - elapsed_time)
                 time.sleep(sleep_time)
 
@@ -57,5 +62,32 @@ class ScreenCapture:
 
     def capture_start(self):
         self.capturing = True
-        self.producer()
-        pass
+        capture_start_thread = Thread(target=self.producer)
+        capture_start_thread.start()
+        return capture_start_thread
+
+    def capture_to_file(self):
+
+        import os
+
+        folder_path = "data/images/"
+        os.makedirs(folder_path, exist_ok=True)
+
+        while self.capturing:
+            # 从队列中获取截图数据
+            timestamp = int(time.time() * 1000)
+            img_name = f"frame_{timestamp}.png"
+            filename = os.path.join(folder_path, img_name)
+            cv2.imwrite(filename, self.img)
+
+            print(f"保存文件：{img_name}")
+            time.sleep(5)
+            pass
+
+    def capture_to_file_start(self, save_capture: bool = False):
+        if save_capture:
+            capture_to_file_start_thread = Thread(
+                target=self.capture_to_file)
+
+            capture_to_file_start_thread.start()
+            return capture_to_file_start_thread

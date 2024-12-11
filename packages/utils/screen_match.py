@@ -1,6 +1,7 @@
 
 import time
 import pygetwindow as gw
+import pyautogui as pg
 
 
 class ScreenMatch:
@@ -14,6 +15,8 @@ class ScreenMatch:
         self.y = 0
         self.width = 0
         self.height = 0
+        self.scaling = 1
+        self.win = None
 
         if len(args) == 1 and isinstance(args[0], str):
             window_title = args[0]
@@ -69,21 +72,32 @@ class ScreenMatch:
 
         all_windows = gw.getWindowsWithTitle(game_name)
         # allanywindows = gw.getAllWindows()
-        print(all_windows)
+
         for win in all_windows:
             left = win.left
             top = win.top
             width = win.width
             height = win.height
-            print(left, top, width, height, "====》")
+
             if width != 0 and height != 0:
+                self.win = win
                 return left, top, width, height
         return None
 
+    def window_active(self):
+        if self.win is not None:
+            self.win.activate()
+        elif self.size_enable:
+            pg.click(self.get_center())
 
-if __name__ == "__main__":
-    target = ScreenMatch("地下城与勇士")
+    def window_close(self):
+        if self.win is not None:
+            self.win.close()
 
-    print(target.getWindow())
-    print(target.get_center())
-    print(target.get_top_left())
+    def window_maximize(self):
+        if self.win is not None:
+            self.win.maximize()
+
+    def window_minimize(self):
+        if self.win is not None:
+            self.win.minimize()

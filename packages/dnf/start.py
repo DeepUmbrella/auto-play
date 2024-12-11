@@ -2,25 +2,52 @@
 
 from ..utils import ScreenCapture
 from ..utils import ScreenMatch
-from ..utils.predict import Predict
-
+from ..utils import Predict
+from .operation_queue import task_queue, Worker
 from .constants import GameName
-import queue
-import threading
 
 
 class Dnf:
 
-    def __init__(self):
+    def __init__(self,
+                 fps: int,
+                 model="netmodels/yolov8/yolov8n.pt",
+                 scaling=1.5,
+                 cap_dev_model: bool = False,
+                 predict_dev_model: bool = False,
+                 save_capture: bool = False,):
+
+        self.fps = fps
+        self.cap_dev_model = cap_dev_model
+        self.predict_dev_model = predict_dev_model
+        self.save_capture = save_capture
+        self.screen_match = ScreenMatch(GameName)
+        self.model = model
+        self.scaling = scaling
+
         pass
 
     def start(self):
-        screen_match = ScreenMatch(GameName)
-        if screen_match.size_enable:
 
-            screen_capture = ScreenCapture(screen_match, dev_model=True)
-            screen_capture.capture_start()
+        if self.screen_match.size_enable:
+            worker = Worker()
+            screen_capture = ScreenCapture(
+                self.screen_match, fps=self.fps, dev_model=self.cap_dev_model)
+            predict = Predict(screen_capture,
+                              predict_callback=task_queue.put,
+                              model=self.model,
+                              dev_model=self.predict_dev_model)
 
+            worker_th = worker.start()
+            capture_th = screen_capture.capture_start()
+            save_img_th = screen_capture.capture_to_file_start(
+                save_capture=self.save_capture)
+            predict_th = predict.predict_start()
+            worker_th.join()
+            capture_th.join()
+            if save_img_th is not None:
+                save_img_th.join()
+            predict_th.join()
         pass
 
 

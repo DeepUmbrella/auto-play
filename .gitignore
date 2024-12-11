@@ -12,3 +12,8 @@ __pycache__
 # python
 .venv
 venv
+# ignore dataset
+
+datasets
+
+runs
