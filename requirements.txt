@@ -1,6 +1,7 @@
 torch
 torchvision
 torchaudio
+scikit-learn
 ultralytics
 mss
 pyautogui

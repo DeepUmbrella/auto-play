@@ -1,7 +1,7 @@
 
 import time
 import pygetwindow as gw
-import pyautogui as pg
+from typing import Callable
 
 
 class ScreenMatch:
@@ -56,6 +56,10 @@ class ScreenMatch:
     def size_enable(self):
         return self.width != 0 and self.height != 0
 
+    @property
+    def window_is_active(self):
+        return self.win is not None and self.win.isActive
+
     def get_center(self):
         """
         Returns the center of the target.
@@ -84,11 +88,17 @@ class ScreenMatch:
                 return left, top, width, height
         return None
 
-    def window_active(self):
+
+# 实时监听窗口是否聚焦
+
+
+    def window_active(self,  callable: [["ScreenMatch"], None] = lambda: None):
         if self.win is not None:
             self.win.activate()
+            time.sleep(0.2)
+            callable(self)
         elif self.size_enable:
-            pg.click(self.get_center())
+            callable(self)
 
     def window_close(self):
         if self.win is not None:

@@ -1,10 +1,9 @@
 
 
-from ..utils import ScreenCapture
-from ..utils import ScreenMatch
-from ..utils import Predict
-from .operation_queue import task_queue, Worker
+from ..utils import ScreenCapture, ScreenMatch, Predict, SaveCapToFile
+from .task_center import TaskCenter
 from .constants import GameName
+from queue import Queue
 
 
 class Dnf:
@@ -21,33 +20,58 @@ class Dnf:
         self.cap_dev_model = cap_dev_model
         self.predict_dev_model = predict_dev_model
         self.save_capture = save_capture
-        self.screen_match = ScreenMatch(GameName)
         self.model = model
         self.scaling = scaling
+        self.save_capture_queue = Queue()
+        self._last_screen_snapshot = None
+        self.task_queue = Queue()
 
-        pass
+    @property
+    def last_screen_snapshot(self):
+        return self._last_screen_snapshot
+
+    @last_screen_snapshot.setter
+    def last_screen_snapshot(self, new_img):
+        self._last_screen_snapshot = new_img
 
     def start(self):
+        screen_match = ScreenMatch(GameName)
 
-        if self.screen_match.size_enable:
-            worker = Worker()
+        def capture_callback(img):
+            self.last_screen_snapshot = img
+
+        def predict_callback(results):
+            self.task_queue.put(results)
+            pass
+
+        def predict_source():
+            return self.last_screen_snapshot
+
+        if screen_match.size_enable:
+            TaskCenter(task_queue=self.task_queue).start()
+            Predict(predict_source=predict_source,
+                    predict_callback=predict_callback,
+                    model=self.model,
+                    fps=self.fps,
+                    dev_model=self.predict_dev_model
+                    ).start()
+            if self.save_capture:
+                SaveCapToFile(
+                    save_capture_queue=self.save_capture_queue,
+                    file_name="dnf.png",
+                    folder_path="data/images",
+                    overtime=20
+                ).start()
+
             screen_capture = ScreenCapture(
-                self.screen_match, fps=self.fps, dev_model=self.cap_dev_model)
-            predict = Predict(screen_capture,
-                              predict_callback=task_queue.put,
-                              model=self.model,
-                              dev_model=self.predict_dev_model)
+                capture_size=screen_match.size,
+                capture_callback=capture_callback,
+                fps=self.fps,
+                dev_model=self.cap_dev_model)
 
-            worker_th = worker.start()
-            capture_th = screen_capture.capture_start()
-            save_img_th = screen_capture.capture_to_file_start(
-                save_capture=self.save_capture)
-            predict_th = predict.predict_start()
-            worker_th.join()
-            capture_th.join()
-            if save_img_th is not None:
-                save_img_th.join()
-            predict_th.join()
+            screen_capture.start()
+            screen_capture.join()
+
         pass
 
 
