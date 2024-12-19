@@ -5,11 +5,12 @@ from threading import Thread
 import time
 from typing import Callable
 
+
 # Load a model
 # model = YOLO("netmodels/yolov8/yolov8n.pt")
 # model = YOLO("netmodels/yolov8/yolov8n.pt")
 
-
+# 1083 -577 166 44
 class Predict(Thread):
     def __init__(self,
                  predict_source: Callable[[], None] = lambda: any,
@@ -38,25 +39,19 @@ class Predict(Thread):
             cv2.resizeWindow('predict', width, height)
 
     def run(self):
+
         frame_duration = 1 / self.fps
 
         while True:
             start_time = time.time()
             img_source = self.predict_source()
+
             if img_source is not None:
-
-                results = self.model(img_source)
-
+                result = self.model(img_source)[0]
+                self.predict_callback(result)
                 if self.dev_model == True:
 
-                    for result in results:
-                        boxes = result.boxes  # Boxes object for bounding box outputs
-                        masks = result.masks  # Masks object for segmentation masks outputs
-                        keypoints = result.keypoints  # Keypoints object for pose outputs
-                        probs = result.probs  # Probs object for classification outputs
-                        obb = result.obb  # Oriented boxes object for OBB outputs
-                    self.predict_callback(results)
-                    cv2.imshow('predict', results[0].plot())
+                    cv2.imshow('predict', result.plot())
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
             elapsed_time = time.time() - start_time

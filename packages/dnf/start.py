@@ -12,13 +12,12 @@ class Dnf:
                  fps: int,
                  model="netmodels/yolov8/yolov8n.pt",
                  scaling=1.5,
-                 cap_dev_model: bool = False,
-                 predict_dev_model: bool = False,
+                 dev_model: bool = False,
+
                  save_capture: bool = False,):
 
         self.fps = fps
-        self.cap_dev_model = cap_dev_model
-        self.predict_dev_model = predict_dev_model
+        self.dev_model = dev_model
         self.save_capture = save_capture
         self.model = model
         self.scaling = scaling
@@ -53,7 +52,7 @@ class Dnf:
                     predict_callback=predict_callback,
                     model=self.model,
                     fps=self.fps,
-                    dev_model=self.predict_dev_model
+                    dev_model=self.dev_model
                     ).start()
             if self.save_capture:
                 SaveCapToFile(
@@ -67,10 +66,11 @@ class Dnf:
                 capture_size=screen_match.size,
                 capture_callback=capture_callback,
                 fps=self.fps,
-                dev_model=self.cap_dev_model)
+                dev_model=self.dev_model)
 
             screen_capture.start()
             screen_capture.join()
+            print("main thread end")
 
         pass
 

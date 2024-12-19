@@ -10,7 +10,7 @@ from typing import Callable
 class ScreenCapture(Thread):
 
     def __init__(self, capture_size: tuple,
-                 capture_callback: Callable[..., any] = lambda: None,
+                 capture_callback: Callable[..., any] = lambda *args: None,
                  fps: int = 5,
                  dev_model: bool = False,
                  name="capture"
@@ -49,12 +49,13 @@ class ScreenCapture(Thread):
                 screenshot = sct.grab(monitor)
 
                 img = np.array(screenshot)
-
                 # to RGB
-                self.capture_callback(cv2.cvtColor(img, cv2.COLOR_BGRA2BGR))
+                img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+
+                self.capture_callback(img)
 
                 if self._DEV_MODEL == True:
-                    cv2.imshow('Screen Capture', self.img)
+                    cv2.imshow('Screen Capture', img)
                     # 按下 'q' 键退出
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
@@ -63,6 +64,13 @@ class ScreenCapture(Thread):
                 sleep_time = max(0, frame_duration - elapsed_time)
                 time.sleep(sleep_time)
 
+        print("capture end")
+
     def capture_stop(self):
         self.capturing = False
         pass
+
+
+if __name__ == '__main__':
+    capture = ScreenCapture((0, 0, 1920, 1080), fps=5, dev_model=True)
+    capture.start()
