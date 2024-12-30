@@ -10,13 +10,11 @@ class SaveCapToFile(Thread):
     def __init__(self, source_queue: Queue,
                  file_name: str,
                  folder_path: str = None,
-                 overtime=10,
                  daemon=True):
-        self.super().__init__()
+        super().__init__()
         self.file_name = file_name
         self.folder_path = folder_path
         self.source_queue = source_queue
-        self.overtime = overtime
         self.daemon = daemon
 
     def run(self):
@@ -26,7 +24,7 @@ class SaveCapToFile(Thread):
 
         while True:
             try:
-                img = self.source_queue.get(timeout=10)
+                img = self.source_queue.get()
             except Empty:
                 print("Queue is empty for 10 seconds. Exiting...")
                 break

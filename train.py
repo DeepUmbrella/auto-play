@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     # 4. 使用训练好的模型进行推理
     results = model.predict(
-        source=val_source_dir,  # 推理的图片/视频路径
+        source=val_source_dir,        # 推理的图片/视频路径
         conf=0.5,                     # 置信度阈值
         save=True,                    # 是否保存预测结果
     )

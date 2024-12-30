@@ -19,3 +19,9 @@ venv
 datasets
 
 runs
+
+# ignore models
+models
+
+# ignore data
+data

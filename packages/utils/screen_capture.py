@@ -11,6 +11,7 @@ class ScreenCapture(Thread):
 
     def __init__(self, capture_size: tuple,
                  capture_callback: Callable[..., any] = lambda *args: None,
+                 pressed_key: Callable[..., any] = lambda *args: None,
                  fps: int = 5,
                  dev_model: bool = False,
                  name="capture"
@@ -22,6 +23,7 @@ class ScreenCapture(Thread):
         self._DEV_MODEL = dev_model
         self.capture_size = capture_size
         self.capture_callback = capture_callback
+        self.pressed_key = pressed_key
         self.fps = fps
         self._act_fps = 0
         self.capturing = False
@@ -36,7 +38,7 @@ class ScreenCapture(Thread):
         return self._img
 
     def run(self):
-
+        last_key = None
         with mss.mss() as sct:
 
             frame_duration = 1 / self.fps
@@ -57,8 +59,11 @@ class ScreenCapture(Thread):
                 if self._DEV_MODEL == True:
                     cv2.imshow('Screen Capture', img)
                     # 按下 'q' 键退出
-                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord('q'):
                         break
+                    if key != 255 and key != last_key:
+                        self.pressed_key(key)
                 elapsed_time = time.time() - start_time
 
                 sleep_time = max(0, frame_duration - elapsed_time)
