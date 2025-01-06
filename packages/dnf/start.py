@@ -4,6 +4,14 @@ from ..utils import ScreenCapture, ScreenMatch, Predict, SaveCapToFile
 from .task_center import TaskCenter
 from .constants import GameName
 from queue import Queue
+from ultralytics.engine.results import Results
+
+
+def getSummary(result: Results):
+    return result.summary()
+
+
+runList = [getSummary, lambda x: print(x)]
 
 
 class Dnf:
@@ -43,13 +51,17 @@ class Dnf:
             return self.last_screen_snapshot
 
         if screen_match.size_enable:
-            TaskCenter(task_queue=self.task_queue,
-                       dev_model=self.dev_model).start()
-            Predict(predict_source=predict_source,
-                    predict_callback=predict_callback,
-                    model=self.model,
-                    fps=self.fps,
-                    ).start()
+            TaskCenter(
+                result_queue=self.task_queue,
+                runList=runList
+            ).start()
+
+            Predict(
+                predict_source=predict_source,
+                predict_callback=predict_callback,
+                model=self.model,
+                fps=self.fps,
+            ).start()
 
             screen_capture = ScreenCapture(
                 capture_size=screen_match.size,
