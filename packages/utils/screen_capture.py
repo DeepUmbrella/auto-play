@@ -1,4 +1,5 @@
 
+from queue import Queue
 import numpy as np
 import mss
 import time
@@ -10,7 +11,7 @@ from typing import Callable
 class ScreenCapture(Thread):
 
     def __init__(self, capture_size: tuple,
-                 capture_callback: Callable[..., any] = lambda *args: None,
+                 predict_source_queue: Queue,
                  pressed_key: Callable[..., any] = lambda *args: None,
                  fps: int = 5,
                  dev_model: bool = False,
@@ -22,7 +23,7 @@ class ScreenCapture(Thread):
         self._img = None
         self._DEV_MODEL = dev_model
         self.capture_size = capture_size
-        self.capture_callback = capture_callback
+        self.predict_source_queue = predict_source_queue
         self.pressed_key = pressed_key
         self.fps = fps
         self._act_fps = 0
@@ -54,7 +55,7 @@ class ScreenCapture(Thread):
                 # to RGB
                 img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
-                self.capture_callback(img)
+                self.predict_source_queue.put(img)
 
                 if self._DEV_MODEL == True:
                     cv2.imshow('Screen Capture', img)
